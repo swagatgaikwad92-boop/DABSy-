@@ -1,0 +1,1033 @@
+/* ============================================================
+   D.A.B.s.y
+   CREATURE-FIRST VISUAL SYSTEM
+   ============================================================ */
+
+:root {
+  --void: #020305;
+  --ink: #05070b;
+
+  --light: 190, 235, 255;
+
+  --eye-w: clamp(86px, 19vw, 170px);
+  --eye-h: clamp(122px, 27vw, 238px);
+
+  --face-gap: clamp(24px, 7vw, 72px);
+
+  --creature-scale: 1;
+
+  --gaze-x: 0px;
+  --gaze-y: 0px;
+
+  --eye-energy: 0.78;
+  --eye-brightness: 1;
+
+  --focus-scale: 1;
+  --focus-x: 0px;
+  --focus-y: 0px;
+
+  --face-x: 0px;
+  --face-y: 0px;
+
+  --world-progress: 0;
+}
+
+
+/* ============================================================
+   RESET
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden;
+
+  background: var(--void);
+
+  color: white;
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+
+/* ============================================================
+   WORLD
+   ============================================================ */
+
+.dabsy-world {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+
+  isolation: isolate;
+
+  background:
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(var(--light), 0.025),
+      transparent 35%
+    ),
+    #020305;
+}
+
+
+/* ============================================================
+   ATMOSPHERE
+   ============================================================ */
+
+.atmosphere {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.7;
+
+  transition:
+    opacity 1.4s cubic-bezier(.22,1,.36,1);
+}
+
+.atmosphere-core {
+  position: absolute;
+
+  width: min(70vw, 700px);
+  height: min(70vw, 700px);
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(var(--light), 0.035),
+      rgba(var(--light), 0.012) 32%,
+      transparent 70%
+    );
+
+  filter: blur(25px);
+}
+
+.atmosphere-haze {
+  position: absolute;
+  inset: -20%;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(var(--light), 0.018),
+      transparent 60%
+    );
+
+  filter: blur(55px);
+
+  animation:
+    atmosphereBreath 9s ease-in-out infinite;
+}
+
+@keyframes atmosphereBreath {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: scale(1.04);
+    opacity: 0.85;
+  }
+}
+
+
+/* ============================================================
+   CREATURE
+   ============================================================ */
+
+.creature {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 1px;
+  height: 1px;
+
+  transform:
+    translate3d(
+      calc(-50% + var(--face-x)),
+      calc(-50% + var(--face-y)),
+      0
+    )
+    scale(var(--creature-scale));
+
+  z-index: 10;
+
+  will-change: transform;
+}
+
+.creature-shadow {
+  position: absolute;
+
+  width: 270px;
+  height: 120px;
+
+  left: 50%;
+  top: 120px;
+
+  transform: translateX(-50%);
+
+  border-radius: 50%;
+
+  background: rgba(0,0,0,0.45);
+
+  filter: blur(38px);
+
+  opacity: 0.55;
+}
+
+
+/* ============================================================
+   FACE
+   ============================================================ */
+
+.face {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: calc(
+    var(--eye-w) * 2 + var(--face-gap)
+  );
+
+  height: var(--eye-h);
+
+  transform: translate(-50%, -50%);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--face-gap);
+
+  will-change: transform;
+}
+
+
+/* ============================================================
+   EYE
+   ============================================================ */
+
+.eye {
+  position: relative;
+
+  width: var(--eye-w);
+  height: var(--eye-h);
+
+  flex: 0 0 auto;
+
+  border-radius: 42% 42% 38% 38% / 32% 32% 43% 43%;
+
+  overflow: hidden;
+
+  transform:
+    translate3d(
+      var(--gaze-x),
+      var(--gaze-y),
+      0
+    )
+    scale(var(--focus-scale));
+
+  will-change: transform;
+
+  transition:
+    border-radius 420ms cubic-bezier(.22,1,.36,1);
+
+  background:
+    radial-gradient(
+      ellipse at 50% 44%,
+      rgba(255,255,255,0.96) 0%,
+      rgba(225,247,255,0.88) 13%,
+      rgba(125,210,240,0.56) 31%,
+      rgba(44,130,164,0.24) 54%,
+      rgba(0,0,0,0) 76%
+    );
+
+  box-shadow:
+    inset 0 -20px 35px rgba(0,0,0,0.26),
+    inset 0 12px 25px rgba(255,255,255,0.16);
+
+  filter:
+    brightness(var(--eye-brightness));
+}
+
+
+/* optical depth */
+
+.eye-depth {
+  position: absolute;
+  inset: -20%;
+
+  border-radius: inherit;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 35%,
+      rgba(0,0,0,0.42) 78%
+    );
+
+  filter: blur(8px);
+
+  pointer-events: none;
+}
+
+
+/* luminous shell */
+
+.eye-shell {
+  position: absolute;
+  inset: 0;
+
+  border-radius: inherit;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 42%,
+      rgba(255,255,255,0.9),
+      rgba(var(--light),0.72) 27%,
+      rgba(var(--light),0.14) 55%,
+      transparent 74%
+    );
+
+  opacity: var(--eye-energy);
+
+  mix-blend-mode: screen;
+
+  filter: blur(0.3px);
+}
+
+
+/* internal light */
+
+.eye-light {
+  position: absolute;
+
+  width: 74%;
+  height: 66%;
+
+  left: 13%;
+  top: 14%;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 48% 44%,
+      white 0%,
+      rgba(255,255,255,0.92) 8%,
+      rgba(var(--light),0.62) 25%,
+      rgba(var(--light),0.18) 49%,
+      transparent 72%
+    );
+
+  filter: blur(3px);
+
+  opacity: var(--eye-energy);
+}
+
+
+/* focus / pupil equivalent */
+
+.eye-focus {
+  position: absolute;
+
+  width: 24%;
+  height: 28%;
+
+  left: 38%;
+  top: 35%;
+
+  border-radius: 50%;
+
+  transform:
+    translate3d(
+      var(--focus-x),
+      var(--focus-y),
+      0
+    );
+
+  background:
+    radial-gradient(
+      circle at 42% 35%,
+      rgba(255,255,255,0.95) 0%,
+      rgba(255,255,255,0.25) 8%,
+      rgba(20,65,85,0.75) 25%,
+      rgba(0,15,23,0.96) 70%
+    );
+
+  box-shadow:
+    0 0 18px rgba(var(--light),0.22);
+
+  transition:
+    transform 260ms cubic-bezier(.22,1.35,.36,1);
+
+  will-change: transform;
+}
+
+
+/* tiny reflection */
+
+.eye-highlight {
+  position: absolute;
+
+  width: 13%;
+  height: 9%;
+
+  left: 29%;
+  top: 27%;
+
+  border-radius: 50%;
+
+  background: white;
+
+  opacity: 0.78;
+
+  filter: blur(0.5px);
+}
+
+
+/* atmospheric edge */
+
+.eye-atmosphere {
+  position: absolute;
+  inset: -16px;
+
+  border-radius: inherit;
+
+  box-shadow:
+    0 0 50px rgba(var(--light),0.09),
+    0 0 100px rgba(var(--light),0.045);
+
+  pointer-events: none;
+
+  animation:
+    eyeBreath 5s ease-in-out infinite;
+}
+
+.eye-right .eye-atmosphere {
+  animation-delay: -1.7s;
+}
+
+@keyframes eyeBreath {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.025);
+  }
+}
+
+
+/* ============================================================
+   BLINK
+   ============================================================ */
+
+.dabsy-world.blinking .eye {
+  animation:
+    blink 145ms cubic-bezier(.65,0,.35,1);
+}
+
+@keyframes blink {
+  0% {
+    transform:
+      translate3d(var(--gaze-x),var(--gaze-y),0)
+      scaleY(1)
+      scaleX(1);
+  }
+
+  48% {
+    transform:
+      translate3d(var(--gaze-x),var(--gaze-y),0)
+      scaleY(0.045)
+      scaleX(1.03);
+  }
+
+  100% {
+    transform:
+      translate3d(var(--gaze-x),var(--gaze-y),0)
+      scaleY(1)
+      scaleX(1);
+  }
+}
+
+
+/* ============================================================
+   STATES
+   ============================================================ */
+
+.dabsy-world.is-listening {
+  --eye-energy: 1;
+  --eye-brightness: 1.12;
+}
+
+.dabsy-world.is-thinking {
+  --eye-energy: 0.68;
+  --eye-brightness: 0.9;
+}
+
+.dabsy-world.is-speaking {
+  --eye-energy: 0.95;
+}
+
+.dabsy-world.is-curious .eye {
+  border-radius:
+    48% 48% 38% 38% /
+    28% 28% 46% 46%;
+}
+
+.dabsy-world.is-happy .eye {
+  border-radius:
+    48% 48% 50% 50% /
+    42% 42% 35% 35%;
+}
+
+.dabsy-world.is-sleepy .eye {
+  transform:
+    translate3d(var(--gaze-x),var(--gaze-y),0)
+    scaleY(0.56);
+}
+
+.dabsy-world.is-surprised .eye {
+  transform:
+    translate3d(var(--gaze-x),var(--gaze-y),0)
+    scale(1.1);
+}
+
+
+/* ============================================================
+   HANDS
+   ============================================================ */
+
+.hand {
+  position: absolute;
+
+  width: 52px;
+  height: 72px;
+
+  bottom: -150px;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  border-radius:
+    45% 55% 45% 55%;
+
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      rgba(var(--light),0.65),
+      rgba(var(--light),0.16) 40%,
+      transparent 72%
+    );
+
+  filter: blur(1px);
+
+  transition:
+    opacity 500ms ease,
+    transform 700ms cubic-bezier(.22,1,.36,1);
+}
+
+.hand-left {
+  left: -130px;
+  transform: translateY(35px) rotate(-18deg);
+}
+
+.hand-right {
+  right: -130px;
+  transform: translateY(35px) rotate(18deg);
+}
+
+.hand.visible {
+  opacity: 0.75;
+  transform: translateY(0) rotate(0);
+}
+
+
+/* ============================================================
+   SPEECH
+   ============================================================ */
+
+.dialogue {
+  position: fixed;
+
+  left: 50%;
+  bottom: 7vh;
+
+  width: min(760px, 88vw);
+
+  transform:
+    translate(-50%, 18px);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  z-index: 50;
+
+  transition:
+    opacity 420ms ease,
+    transform 650ms cubic-bezier(.22,1,.36,1);
+}
+
+.dialogue.visible {
+  opacity: 1;
+
+  transform:
+    translate(-50%, 0);
+}
+
+.speech {
+  text-align: center;
+
+  font-size:
+    clamp(15px, 2.2vw, 20px);
+
+  line-height: 1.5;
+
+  letter-spacing: 0.01em;
+
+  color: rgba(255,255,255,0.9);
+
+  text-shadow:
+    0 2px 20px rgba(0,0,0,0.8);
+}
+
+
+/* ============================================================
+   WORLD
+   ============================================================ */
+
+.environment {
+  position: absolute;
+  inset: 0;
+
+  z-index: 5;
+
+  opacity: 0;
+
+  transform:
+    scale(1.08);
+
+  pointer-events: none;
+
+  transition:
+    opacity 900ms cubic-bezier(.22,1,.36,1),
+    transform 1100ms cubic-bezier(.22,1,.36,1);
+}
+
+.dabsy-world.world-open .environment {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.world-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.world-back {
+  background:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(var(--light),0.035),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(var(--light),0.025),
+      transparent 28%
+    );
+}
+
+.world-object {
+  position: absolute;
+
+  opacity: 0;
+
+  transform:
+    translateY(20px)
+    scale(0.92);
+
+  transition:
+    opacity 700ms cubic-bezier(.22,1,.36,1),
+    transform 900ms cubic-bezier(.22,1.2,.36,1);
+
+  color: rgba(255,255,255,0.68);
+
+  font-size: 12px;
+
+  letter-spacing: 0.14em;
+
+  text-transform: uppercase;
+}
+
+.world-open .world-object {
+  opacity: 0.8;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+.schedule-object {
+  top: 18%;
+  left: 12%;
+}
+
+.study-object {
+  top: 28%;
+  right: 14%;
+}
+
+.memory-object {
+  bottom: 24%;
+  left: 18%;
+}
+
+.project-object {
+  bottom: 15%;
+  right: 17%;
+}
+
+
+/* ============================================================
+   CONTENT SPACE
+   ============================================================ */
+
+.content-space {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 40;
+
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: center;
+
+  padding:
+    0 7vw 12vh;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transform:
+    translateY(30px);
+
+  transition:
+    opacity 600ms ease,
+    transform 800ms cubic-bezier(.22,1,.36,1);
+}
+
+.content-space.visible {
+  opacity: 1;
+
+  transform: translateY(0);
+
+  pointer-events: auto;
+}
+
+.content-inner {
+  width: min(820px, 90vw);
+
+  max-height: 60vh;
+
+  overflow: auto;
+
+  padding: 24px;
+
+  border-radius: 24px;
+
+  background:
+    rgba(5,7,11,0.72);
+
+  backdrop-filter:
+    blur(24px);
+
+  box-shadow:
+    0 30px 100px rgba(0,0,0,0.45);
+}
+
+.content-title {
+  font-size: 20px;
+
+  font-weight: 600;
+
+  margin-bottom: 12px;
+}
+
+.content-text {
+  white-space: pre-wrap;
+
+  color: rgba(255,255,255,0.78);
+
+  line-height: 1.7;
+}
+
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+
+.settings-panel {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    rgba(0,0,0,0.5);
+
+  backdrop-filter:
+    blur(18px);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition: opacity 300ms ease;
+}
+
+.settings-panel.open {
+  opacity: 1;
+
+  pointer-events: auto;
+}
+
+.settings-card {
+  position: relative;
+
+  width: min(420px, 90vw);
+
+  padding: 30px;
+
+  border-radius: 28px;
+
+  background:
+    rgba(12,15,20,0.94);
+
+  box-shadow:
+    0 40px 120px rgba(0,0,0,0.6);
+}
+
+.settings-card h2 {
+  margin: 0 0 6px;
+
+  font-size: 26px;
+}
+
+.settings-subtitle {
+  margin: 0 0 26px;
+
+  color: rgba(255,255,255,0.45);
+}
+
+.settings-card label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 13px;
+
+  color: rgba(255,255,255,0.55);
+}
+
+.settings-card input {
+  width: 100%;
+
+  padding: 14px 15px;
+
+  border: 0;
+
+  outline: 0;
+
+  border-radius: 14px;
+
+  background: rgba(255,255,255,0.06);
+
+  color: white;
+}
+
+.settings-save {
+  width: 100%;
+
+  margin-top: 12px;
+
+  padding: 14px;
+
+  border: 0;
+
+  border-radius: 14px;
+
+  background: rgba(var(--light),0.9);
+
+  color: #061017;
+
+  font-weight: 700;
+}
+
+.settings-close {
+  position: absolute;
+
+  top: 16px;
+  right: 18px;
+
+  width: 36px;
+  height: 36px;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background: rgba(255,255,255,0.06);
+
+  color: white;
+
+  font-size: 24px;
+}
+
+.key-status {
+  min-height: 18px;
+
+  margin-top: 12px;
+
+  font-size: 12px;
+
+  color: rgba(255,255,255,0.5);
+}
+
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+
+.dabsy-world.booting .creature {
+  opacity: 0;
+
+  transform:
+    translate3d(-50%, -46%, 0)
+    scale(0.92);
+
+  filter: blur(18px);
+}
+
+.dabsy-world.awake .creature {
+  opacity: 1;
+
+  transform:
+    translate3d(
+      calc(-50% + var(--face-x)),
+      calc(-50% + var(--face-y)),
+      0
+    )
+    scale(var(--creature-scale));
+
+  filter: blur(0);
+}
+
+.dabsy-world.booting .atmosphere {
+  opacity: 0;
+}
+
+
+/* ============================================================
+   STUDY FOCUS
+   ============================================================ */
+
+.dabsy-world.study-focus .creature {
+  --creature-scale: 0.62;
+
+  transform:
+    translate3d(
+      calc(-50% + var(--face-x)),
+      calc(-50% + var(--face-y) - 28vh),
+      0
+    )
+    scale(var(--creature-scale));
+}
+
+.dabsy-world.study-focus .content-space {
+  opacity: 1;
+
+  transform: translateY(0);
+
+  pointer-events: auto;
+}
+
+
+/* ============================================================
+   ACCESSIBILITY / PERFORMANCE
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+@media (max-width: 520px) {
+  :root {
+    --face-gap: 22px;
+  }
+
+  .creature-shadow {
+    width: 190px;
+  }
+  }
